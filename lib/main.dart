@@ -2,12 +2,21 @@
 // Entry point of the Notes App. Sets up the app theme and provider.
 
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:notes_app_using_provider/apptheme.dart';
+import 'package:notes_app_using_provider/models/note.dart';
 import 'package:notes_app_using_provider/screens/homescreen.dart';
 import 'package:notes_app_using_provider/provider/notes_provider.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  // Initialize Hive
+  await Hive.initFlutter();
+  // Register the Note adapter
+  Hive.registerAdapter(NoteAdapter());
+  // Open the notes box
+  await Hive.openBox<Note>('notesBox');
+
   // Start the app
   runApp(const MyApp());
 }

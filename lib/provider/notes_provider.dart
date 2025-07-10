@@ -1,37 +1,45 @@
-// notes_provider.dart
-// Provides state management for the Notes App using ChangeNotifier.
-
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:notes_app_using_provider/models/note.dart';
 
-/// NotesProvider manages the list of notes and notifies listeners on changes.
 class NotesProvider extends ChangeNotifier {
-  /// The list of all notes.
-  List<Note> notes = [];
+  List<Note> _notes = [];
 
-  /// Adds a new note and notifies listeners.
+  List<Note> get notes => _notes;
+
+  NotesProvider() {
+    _loadNotesFromHive(); // Load on initialization
+  }
+
+  void _loadNotesFromHive() {
+    final box = Hive.box<Note>('notesBox');
+    _notes = box.values.toList();
+    notifyListeners();
+  }
+
   void addNote(Note note) {
-    notes.add(note);
+    final box = Hive.box<Note>('notesBox');
+    box.put(note.id, note); // Save with custom ID
+    _notes = box.values.toList(); // Reload from box
     notifyListeners();
   }
 
-  /// Removes a note and notifies listeners.
   void removeNote(Note note) {
-    notes.remove(note);
+    final box = Hive.box<Note>('notesBox');
+    box.delete(note.id);
+    _notes = box.values.toList();
     notifyListeners();
   }
 
-  /// Updates an existing note (by id) and notifies listeners.
   void updateNote(Note note) {
-    int index = notes.indexOf(note);
-    if (index != -1) {
-      notes[index] = note;
-      notifyListeners();
-    }
+    final box = Hive.box<Note>('notesBox');
+    box.put(note.id, note);
+    _notes = box.values.toList();
+    notifyListeners();
   }
 
-  /// Returns the note with the given id.
-  Note getNoteById(String id) {
-    return notes.firstWhere((note) => note.id == id);
+  Note? getNoteById(String id) {
+    final box = Hive.box<Note>('notesBox');
+    return box.get(id);
   }
 }
